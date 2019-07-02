@@ -2,6 +2,8 @@ package com.ruoyi.project.system.role.service;
 
 import java.util.List;
 import java.util.Set;
+
+import com.ruoyi.framework.web.domain.Ztree;
 import com.ruoyi.project.system.role.domain.Role;
 import com.ruoyi.project.system.user.domain.UserRole;
 
@@ -149,4 +151,5 @@ public interface IRoleService
      * @return 结果
      */
     public int insertAuthUsers(Long roleId, String userIds);
+
 }

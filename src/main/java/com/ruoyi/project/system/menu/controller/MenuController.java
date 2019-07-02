@@ -1,23 +1,20 @@
 package com.ruoyi.project.system.menu.controller;
 
-import java.util.List;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.framework.aspectj.lang.annotation.Log;
 import com.ruoyi.framework.aspectj.lang.enums.BusinessType;
 import com.ruoyi.framework.web.controller.BaseController;
 import com.ruoyi.framework.web.domain.AjaxResult;
 import com.ruoyi.framework.web.domain.Ztree;
+import com.ruoyi.framework.web.domain.ZtreeList;
 import com.ruoyi.project.system.menu.domain.Menu;
 import com.ruoyi.project.system.menu.service.IMenuService;
-import com.ruoyi.project.system.role.domain.Role;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 菜单信息
@@ -25,7 +22,7 @@ import com.ruoyi.project.system.role.domain.Role;
  * @author ruoyi
  */
 @Controller
-@RequestMapping("/system/menu")
+@RequestMapping("/ibms/api/system/menu")
 public class MenuController extends BaseController
 {
     private String prefix = "system/menu";
@@ -121,7 +118,7 @@ public class MenuController extends BaseController
     @ResponseBody
     public AjaxResult editSave(Menu menu)
     {
-        return toAjax(menuService.updateMenu(menu));
+        return success(menuService.updateMenu(menu)>0?"更新成功":"更行失败");
     }
 
     /**
@@ -138,9 +135,9 @@ public class MenuController extends BaseController
      */
     @PostMapping("/checkMenuNameUnique")
     @ResponseBody
-    public String checkMenuNameUnique(Menu menu)
+    public AjaxResult checkMenuNameUnique(Menu menu)
     {
-        return menuService.checkMenuNameUnique(menu);
+        return success(menuService.checkMenuNameUnique(menu).equals("0")?"菜单名称不存在":"菜单名称已存在");
     }
 
     /**
@@ -148,10 +145,20 @@ public class MenuController extends BaseController
      */
     @GetMapping("/roleMenuTreeData")
     @ResponseBody
-    public List<Ztree> roleMenuTreeData(Role role)
+    public List<Ztree> roleMenuTreeData(Long roleId)
     {
-        List<Ztree> ztrees = menuService.roleMenuTreeData(role);
+        List<Ztree> ztrees = menuService.roleMenuTreeData(roleId);
         return ztrees;
+    }
+    /**
+     * 加载角色菜单列表树
+     */
+    @PostMapping("/updateRoleMenuTreeData")
+    @ResponseBody
+    public AjaxResult updateRoleMenuTreeData(@RequestBody ZtreeList ztreeList)
+    {
+        List<Ztree> ztrees=ztreeList.getZtreeList();
+        return success(menuService.updateRoleZtree(ztrees,ztreeList.getRoleId())>0?"菜单权限变化":"未修改菜单权限");
     }
 
     /**
@@ -159,7 +166,7 @@ public class MenuController extends BaseController
      */
     @GetMapping("/menuTreeData")
     @ResponseBody
-    public List<Ztree> menuTreeData(Role role)
+    public List<Ztree> menuTreeData()
     {
         List<Ztree> ztrees = menuService.menuTreeData();
         return ztrees;

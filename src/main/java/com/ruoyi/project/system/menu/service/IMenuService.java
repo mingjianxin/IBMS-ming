@@ -50,10 +50,10 @@ public interface IMenuService
     /**
      * 根据角色ID查询菜单
      * 
-     * @param role 角色对象
+     * @param roleId 角色ID
      * @return 菜单列表
      */
-    public List<Ztree> roleMenuTreeData(Role role);
+    public List<Ztree> roleMenuTreeData(Long roleId);
 
     /**
      * 查询所有菜单信息
@@ -124,4 +124,13 @@ public interface IMenuService
      * @return 结果
      */
     public String checkMenuNameUnique(Menu menu);
+
+    /**
+     * 对象转菜单树
+     *
+     * @param ztrees 角色绑定的菜单树
+     * @param roleId  角色ID
+     * @return 树结构列表
+     */
+    public int updateRoleZtree(List<Ztree> ztrees, Long roleId);
 }

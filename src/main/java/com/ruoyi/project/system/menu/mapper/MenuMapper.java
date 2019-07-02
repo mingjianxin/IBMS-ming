@@ -104,5 +104,5 @@ public interface MenuMapper
      * @param parentId 父菜单ID
      * @return 结果
      */
-    public Menu checkMenuNameUnique(@Param("menuName") String menuName, @Param("parentId") Long parentId);
+    public List<Menu> checkMenuNameUnique(@Param("menuName") String menuName, @Param("parentId") Long parentId);
 }

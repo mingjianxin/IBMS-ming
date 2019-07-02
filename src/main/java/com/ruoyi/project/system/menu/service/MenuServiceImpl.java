@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import com.ruoyi.project.system.role.domain.RoleMenu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.constant.UserConstants;
@@ -105,13 +107,12 @@ public class MenuServiceImpl implements IMenuService
     /**
      * 根据角色ID查询菜单
      * 
-     * @param role 角色对象
+     * @param roleId
      * @return 菜单列表
      */
     @Override
-    public List<Ztree> roleMenuTreeData(Role role)
+    public List<Ztree> roleMenuTreeData(Long roleId)
     {
-        Long roleId = role.getRoleId();
         List<Ztree> ztrees = new ArrayList<Ztree>();
         List<Menu> menuList = menuMapper.selectMenuAll();
         if (StringUtils.isNotNull(roleId))
@@ -197,7 +198,31 @@ public class MenuServiceImpl implements IMenuService
         }
         return ztrees;
     }
-
+    /**
+     * 对象转菜单树
+     *
+     * @param ztrees 角色绑定的菜单树
+     * @param roleId  角色ID
+     * @return 树结构列表
+     */
+    public int updateRoleZtree(List<Ztree> ztrees, Long roleId)
+    {
+        List<RoleMenu> roleMenuList=new ArrayList<>();
+        for (Ztree ztree : ztrees)
+        {
+            RoleMenu roleMenu=new RoleMenu();
+            if(ztree.isChecked()){
+                roleMenu.setRoleId(roleId);
+                roleMenu.setMenuId(ztree.getId());
+                roleMenuList.add(roleMenu);
+            }
+        }
+        if(!roleMenuList.isEmpty()){
+            roleMenuMapper.deleteRoleMenuByRoleId(roleId);
+            return  roleMenuMapper.batchRoleMenu(roleMenuList);
+        }
+         return 0;
+    }
     public String transMenuName(Menu menu, List<String> roleMenuList, boolean permsFlag)
     {
         StringBuffer sb = new StringBuffer();
@@ -269,7 +294,13 @@ public class MenuServiceImpl implements IMenuService
     {
         menu.setCreateBy(ShiroUtils.getLoginName());
         ShiroUtils.clearCachedAuthorizationInfo();
-        return menuMapper.insertMenu(menu);
+        if (checkMenuNameUnique(menu).equals("0")) {
+
+            return menuMapper.insertMenu(menu);
+        } else {
+
+            return 0;
+        }
     }
 
     /**
@@ -279,11 +310,16 @@ public class MenuServiceImpl implements IMenuService
      * @return 结果
      */
     @Override
-    public int updateMenu(Menu menu)
-    {
+    public int updateMenu(Menu menu) {
         menu.setUpdateBy(ShiroUtils.getLoginName());
         ShiroUtils.clearCachedAuthorizationInfo();
-        return menuMapper.updateMenu(menu);
+        if (checkMenuNameUnique(menu).equals("0")) {
+
+            return menuMapper.updateMenu(menu);
+        } else {
+
+            return 0;
+        }
     }
 
     /**
@@ -296,10 +332,10 @@ public class MenuServiceImpl implements IMenuService
     public String checkMenuNameUnique(Menu menu)
     {
         Long menuId = StringUtils.isNull(menu.getMenuId()) ? -1L : menu.getMenuId();
-        Menu info = menuMapper.checkMenuNameUnique(menu.getMenuName(), menu.getParentId());
-        if (StringUtils.isNotNull(info) && info.getMenuId().longValue() != menuId.longValue())
+        List<Menu> infoList= menuMapper.checkMenuNameUnique(menu.getMenuName(), menu.getParentId());
+        if (infoList.size()==1)
         {
-            return UserConstants.MENU_NAME_NOT_UNIQUE;
+            return UserConstants.MENU_NAME_NOT_UNIQUE;// 查询到该菜单名已被占用
         }
         return UserConstants.MENU_NAME_UNIQUE;
     }
